@@ -7,9 +7,9 @@ In order to work with this api you'll need the following installed on your machi
 
 ### .env file setup
 
-* PORT = `// Port on which the code has to run - Default 3000`
-* USERNAME = `// username of a valid salesforce org user`
-* PASSWORD = `// password of a valid salesforce org user`
+* PORT = `Port on which the code has to run - Default 3000`
+* USERNAME = `username of a valid salesforce org user`
+* PASSWORD = `password of a valid salesforce org user`
 
 ### Install Node dependencies
 
