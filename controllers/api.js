@@ -20,19 +20,17 @@ async function getPicklistValues(req, res) {
  * make connection with the salesforce org
  * @returns {object} jsforce connection to the org
  */
-function makeConnection() {
-    return new Promise(async (resolve, reject) => {
-        try {
-            
-            const connection = new jsforce.Connection({});
-            await connection.login(process.env.USERNAME, process.env.PASSWORD);
-            resolve(connection);
+async function makeConnection() {
+    try {
+        
+        const connection = new jsforce.Connection({});
+        await connection.login(process.env.USERNAME, process.env.PASSWORD);
+        return connection;
 
-        } catch (error) {
-            console.log('error in makeConnection - ', error);
-            reject(error);
-        }
-    })
+    } catch (error) {
+        console.log('error in makeConnection - ', error);
+        throw error;
+    }
 }
 
 /**
@@ -40,18 +38,16 @@ function makeConnection() {
  * @param {string} sobject - Opportunity
  * @returns {object} metadata
  */
-function getMetadata(sobject, connection) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            
-            const meta = await connection.sobject(sobject).describe();
-            resolve(meta);
+async function getMetadata(sobject, connection) {
+    try {
+        
+        const meta = await connection.sobject(sobject).describe();
+        return meta;
 
-        } catch (error) {
-            console.log('error in getMetadata - ', error);
-            reject(error);
-        }
-    })
+    } catch (error) {
+        console.log('error in getMetadata - ', error);
+        throw error;
+    }
 }
 
 /**
@@ -60,25 +56,23 @@ function getMetadata(sobject, connection) {
  * @param {Array} recordTypes contains the record type values of the sobject
  * @returns {Object} stageNames
  */
-function generateStageNameMap(connection, recordTypes) {
-    return new Promise(async (resolve, reject) => {
-        try {
+async function generateStageNameMap(connection, recordTypes) {
+    try {
 
-            const stageNames = {};
-            const promises = [];
+        const stageNames = {};
+        const promises = [];
 
-            recordTypes.forEach(async type => promises.push(fetchRecordTypeLayouts(connection, type.urls.layout, type.recordTypeId)));
+        recordTypes.forEach(async type => promises.push(fetchRecordTypeLayouts(connection, type.urls.layout, type.recordTypeId)));
 
-            const results = await Promise.all(promises);
-            results.forEach(res => stageNames[res.id] = res.values);
+        const results = await Promise.all(promises);
+        results.forEach(res => stageNames[res.id] = res.values);
 
-            resolve(stageNames);
+        return stageNames;
 
-        } catch (error) {
-            console.log('error in generateStageNameMap - ', error);
-            reject(error);
-        }
-    })
+    } catch (error) {
+        console.log('error in generateStageNameMap - ', error);
+        throw error;
+    }
 }
 
 /**
@@ -88,26 +82,24 @@ function generateStageNameMap(connection, recordTypes) {
  * @param {string} id of the record type
  * @returns {object} id and picklist values
  */
-function fetchRecordTypeLayouts(connection, url, id) {
-    return new Promise(async (resolve, reject) => {
-        try {
+async function fetchRecordTypeLayouts(connection, url, id) {
+    try {
 
-            const request = {
-                body: "",
-                header: { "Content-Type": "application/json" },
-                method: "get",
-                url
-            };
+        const request = {
+            body: "",
+            header: { "Content-Type": "application/json" },
+            method: "get",
+            url
+        };
 
-            const response = await connection.request(request);
-            const stageNames = findObjects(response, 'name', 'StageName');
-            resolve({ id, values: stageNames[0]["picklistValues"] });
+        const response = await connection.request(request);
+        const stageNames = findObjects(response, 'name', 'StageName');
+        return { id, values: stageNames[0]["picklistValues"] };
 
-        } catch (error) {
-            console.log('error in fetchRecordTypeLayouts - ', error);
-            reject(error);
-        }
-    })
+    } catch (error) {
+        console.log('error in fetchRecordTypeLayouts - ', error);
+        throw error;
+    }
 }
 
 /**
